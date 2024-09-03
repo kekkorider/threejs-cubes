@@ -10,7 +10,14 @@
 <script setup>
 import { shallowRef, onMounted, nextTick, watch } from 'vue'
 import { useWindowSize, useDevicePixelRatio } from '@vueuse/core'
-import { Scene, PerspectiveCamera, Mesh, BoxGeometry } from 'three'
+import {
+	Scene,
+	PerspectiveCamera,
+	Mesh,
+	InstancedMesh,
+	BoxGeometry,
+	Object3D,
+} from 'three'
 import { WebGPURenderer } from 'three/webgpu'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
@@ -39,8 +46,6 @@ onMounted(async () => {
 
 	createMesh()
 
-	await loadModel()
-
 	createControls()
 
 	gsap.ticker.add(time => {
@@ -68,7 +73,6 @@ watch([windowWidth, windowHeight], value => {
 //
 function updateScene(time = 0) {
 	controls.update()
-	mesh.rotation.set(time * 0.2, time * 0.13, time * 0.17)
 }
 
 function createScene() {
@@ -82,7 +86,7 @@ function createCamera() {
 		0.1,
 		100
 	)
-	camera.position.set(0, 0, 2.5)
+	camera.position.set(-6, 6, 8)
 }
 
 function createRenderer() {
@@ -96,27 +100,37 @@ function createRenderer() {
 	renderer.setSize(windowWidth.value, windowHeight.value)
 }
 
-async function loadModel() {
-	const gltf = await gltfLoader.load('/monkey.glb')
-	const model = gltf.scene.getObjectByName('Suzanne')
-
-	model.material = SampleTSLMaterial
-	model.position.x = 1
-
-	scene.add(model)
-}
-
 function createControls() {
 	controls = new OrbitControls(camera, renderer.domElement)
 	controls.enableDamping = true
 }
 
 function createMesh() {
-	const geometry = new BoxGeometry()
+	const geometry = new BoxGeometry(0.9, 0.9, 0.9)
 	const material = SampleTSLMaterial
 
-	mesh = new Mesh(geometry, material)
-	mesh.position.x = -1
+	const size = 7
+	mesh = new InstancedMesh(geometry, material, Math.pow(size, 3))
+
+	const dummy = new Object3D()
+
+	let x, y, z
+	for (let i = 0; i < size; i++) {
+		x = i - size * 0.5 + 0.5
+		for (let j = 0; j < size; j++) {
+			y = j - size * 0.5 + 0.5
+			for (let k = 0; k < size; k++) {
+				z = k - size * 0.5 + 0.5
+
+				dummy.position.set(x, y, z)
+				dummy.updateMatrix()
+
+				mesh.setMatrixAt(i * size * size + j * size + k, dummy.matrix)
+			}
+		}
+	}
+
+	mesh.instanceMatrix.needsUpdate = true
 
 	scene.add(mesh)
 }
