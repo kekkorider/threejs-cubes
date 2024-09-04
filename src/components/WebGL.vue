@@ -17,12 +17,13 @@ import {
 	InstancedMesh,
 	BoxGeometry,
 	Object3D,
+	InstancedBufferAttribute,
 } from 'three'
 import { WebGPURenderer } from 'three/webgpu'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 import { useGSAP } from '@/composables/useGSAP'
-import { SampleTSLMaterial } from '@/assets/materials'
+import { CubeMaterial } from '@/assets/materials'
 import { gltfLoader } from '@/assets/loaders'
 import '@/assets/Debug'
 
@@ -107,14 +108,20 @@ function createControls() {
 
 function createMesh() {
 	const geometry = new BoxGeometry(0.9, 0.9, 0.9)
-	const material = SampleTSLMaterial
+	const material = CubeMaterial
 
-	const size = 7
+	const size = 15
 	mesh = new InstancedMesh(geometry, material, Math.pow(size, 3))
 
 	const dummy = new Object3D()
 
-	let x, y, z
+	const a_Scale = new Float32Array(size * size * size)
+	const a_Position = new Float32Array(size * size * size * 3)
+
+	let num = 0,
+		x,
+		y,
+		z
 	for (let i = 0; i < size; i++) {
 		x = i - size * 0.5 + 0.5
 		for (let j = 0; j < size; j++) {
@@ -126,10 +133,26 @@ function createMesh() {
 				dummy.updateMatrix()
 
 				mesh.setMatrixAt(i * size * size + j * size + k, dummy.matrix)
+
+				a_Scale[i * size * size + j * size + k] = gsap.utils.random(0.5, 1)
+
+				num += 3
+				a_Position[num - 3] = x
+				a_Position[num - 2] = y
+				a_Position[num - 1] = z
 			}
 		}
 	}
 
+	mesh.geometry.setAttribute(
+		'a_Position',
+		new InstancedBufferAttribute(a_Position, 3)
+	)
+
+	mesh.geometry.setAttribute(
+		'a_Scale',
+		new InstancedBufferAttribute(a_Scale, 1)
+	)
 	mesh.instanceMatrix.needsUpdate = true
 
 	scene.add(mesh)
