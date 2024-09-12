@@ -13,7 +13,6 @@ import { useWindowSize, useDevicePixelRatio } from '@vueuse/core'
 import {
 	Scene,
 	PerspectiveCamera,
-	Mesh,
 	InstancedMesh,
 	BoxGeometry,
 	Object3D,
@@ -24,7 +23,6 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 import { useGSAP } from '@/composables/useGSAP'
 import { CubeMaterial } from '@/assets/materials'
-import { gltfLoader } from '@/assets/loaders'
 import '@/assets/Debug'
 
 const canvasRef = shallowRef(null)
@@ -87,7 +85,7 @@ function createCamera() {
 		0.1,
 		100
 	)
-	camera.position.set(-6, 6, 8)
+	camera.position.set(4, 4, 18)
 }
 
 function createRenderer() {
@@ -110,7 +108,7 @@ function createMesh() {
 	const geometry = new BoxGeometry(0.9, 0.9, 0.9)
 	const material = CubeMaterial
 
-	const size = 15
+	const size = 13
 	mesh = new InstancedMesh(geometry, material, Math.pow(size, 3))
 
 	const dummy = new Object3D()

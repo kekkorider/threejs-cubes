@@ -1,14 +1,17 @@
-import { MeshBasicNodeMaterial, uv, Fn, vec3, vec4, positionLocal, uniform, abs, step, sin, remap, timerLocal, attribute } from 'three/tsl'
-import { DoubleSide } from 'three'
+import { MeshBasicNodeMaterial, uv, Fn, vec2, vec3, vec4, positionLocal, uniform, abs, step, clamp, sin, remap, timerLocal, attribute, oneMinus } from 'three/tsl'
+import { DoubleSide, AdditiveBlending } from 'three'
 
 export const CubeMaterial = new MeshBasicNodeMaterial({
   transparent: true,
-  side: DoubleSide
+  side: DoubleSide,
+  blending: AdditiveBlending,
+  depthWrite: false,
 })
 
 export const u_Scale = uniform(0.75)
-export const u_Speed = uniform(1)
-export const u_Frequency = uniform(1.3)
+export const u_Speed = uniform(2)
+export const u_Frequency = uniform(0.66)
+export const u_Thickness = uniform(0.05)
 
 const a_Scale = attribute('a_Scale')
 const a_Position = attribute('a_Position')
@@ -23,14 +26,19 @@ const calculateValue = () => {
 
 CubeMaterial.positionNode = Fn(() => {
   const val = calculateValue()
+  // return positionLocal
   return positionLocal.mul(val).mul(a_Scale).mul(u_Scale)
 })()
 
 CubeMaterial.colorNode = Fn(() => {
-  const centered = abs(uv().mul(2).sub(1))
-  const alpha = step(0.9, centered.x).add(step(0.9, centered.y))
-
   const val = calculateValue()
 
-  return vec4(vec3(val).mul(vec3(uv().x, val, uv().y)), 1)
+  const edgeThickness = u_Thickness.mul(val)
+
+  const centered = abs(uv().mul(2).sub(1))
+  const edge = step(vec2(oneMinus(edgeThickness)), centered)
+  const clampedEdge = clamp(edge.x.add(edge.y), 0.0, 1.0)
+
+  const color = vec3(uv().x, val, uv().y)
+  return vec4(vec3(val).mul(color), 1).mul(clampedEdge).mul(val)
 })()
