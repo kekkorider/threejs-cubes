@@ -85,7 +85,7 @@ function createCamera() {
 		0.1,
 		100
 	)
-	camera.position.set(4, 4, 18)
+	camera.position.set(4, 4, 10)
 }
 
 function createRenderer() {

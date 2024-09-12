@@ -42,6 +42,6 @@ CubeMaterial.colorNode = Fn(() => {
   const edge = step(vec2(oneMinus(edgeThickness)), centered)
   const clampedEdge = clamp(edge.x.add(edge.y), 0.0, 1.0)
 
-  const color = vec3(uv().x, val, uv().y)
+  const color = vec3(uv().x, val.mul(0.3), uv().y)
   return vec4(vec3(val).mul(color), 1).mul(clampedEdge).mul(val)
 })()
