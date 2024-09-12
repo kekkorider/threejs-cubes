@@ -1,4 +1,4 @@
-import { MeshBasicNodeMaterial, uv, Fn, vec2, vec3, vec4, positionLocal, uniform, abs, step, clamp, sin, remap, timerLocal, attribute, oneMinus } from 'three/tsl'
+import { MeshBasicNodeMaterial, uv, Fn, vec2, vec3, vec4, positionLocal, uniform, abs, step, clamp, sin, remap, timerLocal, attribute, oneMinus, rotate } from 'three/tsl'
 import { DoubleSide, AdditiveBlending } from 'three'
 
 export const CubeMaterial = new MeshBasicNodeMaterial({
@@ -26,8 +26,11 @@ const calculateValue = () => {
 
 CubeMaterial.positionNode = Fn(() => {
   const val = calculateValue()
+
+  const scaled = positionLocal.mul(val).mul(a_Scale).mul(u_Scale)
+  const rotated = rotate(scaled, vec3(time, 0, time.mul(0.7)))
   // return positionLocal
-  return positionLocal.mul(val).mul(a_Scale).mul(u_Scale)
+  return rotated
 })()
 
 CubeMaterial.colorNode = Fn(() => {
