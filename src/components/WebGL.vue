@@ -19,14 +19,16 @@ import {
 	InstancedBufferAttribute,
 } from 'three'
 import { WebGPURenderer } from 'three/webgpu'
+import { pass, BloomNode } from 'three/tsl'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import PostProcessing from 'three/src/renderers/common/PostProcessing'
 
 import { useGSAP } from '@/composables/useGSAP'
 import { CubeMaterial } from '@/assets/materials'
 import '@/assets/Debug'
 
 const canvasRef = shallowRef(null)
-let scene, camera, renderer, mesh, controls
+let scene, camera, renderer, postprocessing, mesh, controls
 
 const { width: windowWidth, height: windowHeight } = useWindowSize()
 const { pixelRatio: dpr } = useDevicePixelRatio()
@@ -42,6 +44,7 @@ onMounted(async () => {
 	createScene()
 	createCamera()
 	createRenderer()
+	createPostprocessing()
 
 	createMesh()
 
@@ -49,7 +52,7 @@ onMounted(async () => {
 
 	gsap.ticker.add(time => {
 		updateScene(time)
-		renderer.renderAsync(scene, camera)
+		postprocessing.renderAsync(scene, camera)
 	})
 })
 
@@ -99,9 +102,22 @@ function createRenderer() {
 	renderer.setSize(windowWidth.value, windowHeight.value)
 }
 
+function createPostprocessing() {
+	postprocessing = new PostProcessing(renderer)
+
+	// Color
+	const colorPass = pass(scene, camera)
+
+	// Bloom
+	const bloom = new BloomNode(colorPass, 0.5, 0.5, 0.8)
+
+	postprocessing.outputNode = colorPass.add(bloom)
+}
+
 function createControls() {
 	controls = new OrbitControls(camera, renderer.domElement)
 	controls.enableDamping = true
+	controls.autoRotate = true
 }
 
 function createMesh() {
